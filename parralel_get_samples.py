@@ -39,11 +39,12 @@ def main():
     import itertools
 
     a=range(args.num_rollouts)
-    damages=[[-1,1], [-.7,.7], [-.5,.5]]
+    damages=[[-1,1], [-.5,.5]]
+    dampairs = list(itertools.product(damages,damages,damages))
     ar = [args]
 
-    paramlist = list(itertools.product(a,damages, ar))
-    ntrials = args.num_rollouts * ( len(damages))
+    paramlist = list(itertools.product(a,dampairs, ar))
+    ntrials = args.num_rollouts * (len(dampairs))
 
     out = Parallel(n_jobs=15, verbose=1, backend="multiprocessing")(
                  map(delayed(sampling),paramlist))
@@ -55,7 +56,7 @@ def main():
     bigdata1=np.array([row[0] for row in out]).reshape((ntrials,args.max_timesteps,26))
     bigdata2=np.array([row[1] for row in out]).reshape((ntrials,args.max_timesteps,25))
     bigdata3=np.array([row[2] for row in out]).reshape((ntrials,args.max_timesteps,14))
-    y_data=np.array([row[3] for row in out]).reshape((ntrials,2))
+    y_data=np.array([row[3] for row in out]).reshape((ntrials, 3,2))
     clas=np.array([row[4] for row in out]).reshape((ntrials,1))
     print(bigdata1.shape)
     # print(bigdata.shape)
@@ -66,40 +67,41 @@ def main():
                     "class": clas,
                     'bigdata2': bigdata2,
                     'bigdata3': bigdata3}
-    pickle_out = open("data_pickles/" + args.envname + "_traintest50.dict", 'wb')
+    pickle_out = open("data_pickles/" + args.envname + "_train3joints50timestep.dict", 'wb')
     pickle.dump(train_data, pickle_out)
     pickle_out.close()
 
 
 def sampling(arguments):
 
-    it, val, args = arguments
+    it, dampair, args = arguments
     print it
     print('loading and building expert policy')
     policy_fn = load_policy.load_policy(args.expert_policy_file)
     print('loaded and built')
 
 
-    import gym
+    import gym, itertools
     env = gym.make(args.envname)
     max_steps = args.max_timesteps or env.spec.timestep_limit
 
 
     with tf.Session():
         tf_util.initialize()
-        damages=[[-1,1]]
-        damagescheck=[[-1,1], [-.7,.7], [-.5,.5]]
-        itr = damagescheck.index(val)
+        damages=[[-1,1], [-.5,.5]]
+    	dampairs = list(itertools.product(damages,damages,damages))
+        itr = dampairs.index(dampair)
 
         bigdata1 = np.empty([0, max_steps, 26])
         bigdata2 = np.empty([0, max_steps, 25])
         bigdata3 = np.empty([0, max_steps, 14])
 
-        y_data = np.empty([0,2])
+        y_data = np.empty([0,3,2])
         clas = np.empty([0,1])
         for it, j in enumerate(damages):
             # print ('damage',it)
-            env.env.model.actuator_ctrlrange = np.array([[damages[0], damages[0], val]])
+            #print(dampair)
+            env.env.model.actuator_ctrlrange = np.array(dampair)
 
             for i in range(args.num_rollouts):
                 returns = []
@@ -157,7 +159,7 @@ def sampling(arguments):
                 data3 = np.concatenate((observations - newobs, actions), axis=1)
                 data3 = data3.reshape(1,max_steps, 14)
                 #print(len(j))
-                y_data = np.append(y_data, [val], axis=0)
+                y_data = np.append(y_data, [dampair], axis=0)
                 #print(y_data)
                 #print(bigdata.shape, data.shape)
                 bigdata1 = np.append(bigdata1, data1, axis=0)
