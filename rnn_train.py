@@ -7,7 +7,7 @@ import pickle
 def lstm_model():
    hidden_units = 512  # may increase/decrease depending on capacity needed
    timesteps = 50
-   input_dim = 26
+   input_dim = 14
    num_classes = 8    # num of classes for ecg output
    model = Sequential()
    model.add(LSTM(hidden_units, input_shape=(timesteps, input_dim)))
@@ -36,13 +36,13 @@ def lstm_model():
 
 def train():
    print("loading samples")
-   pickle_in = open("data_pickles/Hopper-v1_train3joints50timestep.dict", "rb")
+   pickle_in = open("data_pickles/Hopper-v1_train3joints50timestenormal.dict", "rb")
    data = pickle.load(pickle_in)
    print("samples loaded")
-   xt = data['bigdata1']  # input_data shape = (num_trials, timesteps, input_dim)
-   yt = data['class']  # out_data shape = (num_trials, num_classes)
+   xt = data['bigdata3']  # input_data shape = (num_trials, timesteps, input_dim)
+   # yt = data['y_data'].reshape(24000,6)  # out_data shape = (num_trials, num_classes)
 
-   # yt = data['y_data']
+   yt = data['class']
    from sklearn.preprocessing import OneHotEncoder, normalize
    #xt = normalize(xt)
    enc = OneHotEncoder()
@@ -50,9 +50,9 @@ def train():
    print(yt[:10])
    print(xt.shape, yt.shape)
    batch_size = 64
-   epochs = 10
+   epochs = 30
    model = lstm_model()
    model.fit(xt, yt, epochs=epochs, batch_size=batch_size, shuffle=True)
-   model.save('saved_models/my_model3jointsday2_data1.h5')
+   model.save('saved_models/my_model3jointsday2_data3.h5')
 
 train()

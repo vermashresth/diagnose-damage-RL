@@ -14,16 +14,12 @@ import tf_util
 import gym
 import load_policy
 
+from joblib import Parallel, delayed
+import itertools
+import gym, itertools
+from sklearn.preprocessing import normalize
 def main():
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('expert_policy_file', type=str)
-    parser.add_argument('envname', type=str)
-    parser.add_argument('--render', action='store_true')
-    parser.add_argument("--max_timesteps", type=int)
-    parser.add_argument('--num_rollouts', type=int, default=50,
-                        help='Number of expert roll outs')
-    args = parser.parse_args()
+
 
 
 
@@ -35,8 +31,7 @@ def main():
 
     #
     #
-    from joblib import Parallel, delayed
-    import itertools
+
 
     a=range(args.num_rollouts)
     damages=[[-1,1], [-.5,.5]]
@@ -67,7 +62,7 @@ def main():
                     "class": clas,
                     'bigdata2': bigdata2,
                     'bigdata3': bigdata3}
-    pickle_out = open("data_pickles/" + args.envname + "_train3joints50timestep.dict", 'wb')
+    pickle_out = open("data_pickles/" + args.envname + "_train3joints50timestenormaltest.dict", 'wb')
     pickle.dump(train_data, pickle_out)
     pickle_out.close()
 
@@ -76,12 +71,10 @@ def sampling(arguments):
 
     it, dampair, args = arguments
     print it
-    print('loading and building expert policy')
-    policy_fn = load_policy.load_policy(args.expert_policy_file)
-    print('loaded and built')
 
 
-    import gym, itertools
+
+    
     env = gym.make(args.envname)
     max_steps = args.max_timesteps or env.spec.timestep_limit
 
@@ -116,11 +109,12 @@ def sampling(arguments):
                 steps = 0
                 while not done:
                     action = policy_fn(obs[None,:])
-                    observations.append(obs)
-                    actions.append(action)
+                    observations.append(normalize([obs])[0])
+                    actions.append(normalize(action))
                     obs, r, done, _ = env.step(action)
-                    newobs.append(obs)
+                    newobs.append(normalize([obs])[0])
                     rewards.append(r)
+                    #print(rewards)
                     totalr += r
                     steps += 1
                     if args.render:
@@ -140,7 +134,7 @@ def sampling(arguments):
                 actions = actions.reshape(np.shape(actions)[0], np.shape(actions)[2])
                 newobs = np.array(newobs)
                 rewards = np.array(rewards)
-                rewards = rewards.reshape(np.shape(rewards)[0], 1)
+                rewards = normalize(rewards.reshape(np.shape(rewards)[0], 1))
 
 
 
@@ -152,7 +146,7 @@ def sampling(arguments):
 
                 data1 = np.concatenate((observations, actions, newobs, rewards), axis=1)
                 data1 = data1.reshape(1,max_steps, 26)
-
+                #rint data1
                 data2 = np.concatenate((observations, actions, newobs), axis=1)
                 data2 = data2.reshape(1,max_steps, 25)
 
@@ -171,5 +165,20 @@ def sampling(arguments):
                 # print "bho"
                 return bigdata1, bigdata2, bigdata3, y_data, clas
 
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('expert_policy_file', type=str)
+parser.add_argument('envname', type=str)
+parser.add_argument('--render', action='store_true')
+parser.add_argument("--max_timesteps", type=int)
+parser.add_argument('--num_rollouts', type=int, default=50,
+                    help='Number of expert roll outs')
+args = parser.parse_args()
+
+print('loading and building expert policy')
+policy_fn = load_policy.load_policy(args.expert_policy_file)
+print('loaded and built')
+
+main()
