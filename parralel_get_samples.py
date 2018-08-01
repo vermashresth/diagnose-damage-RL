@@ -66,7 +66,7 @@ def main():
                     "class": clas,
                     'bigdata2': bigdata2,
                     'bigdata3': bigdata3}
-    pickle_out = open("data_pickles/" + args.envname + "_traindiverse.dict", 'wb')
+    pickle_out = open("data_pickles/" + args.envname + "_traintest50.dict", 'wb')
     pickle.dump(train_data, pickle_out)
     pickle_out.close()
 
@@ -99,7 +99,7 @@ def sampling(arguments):
         clas = np.empty([0,1])
         for it, j in enumerate(damages):
             # print ('damage',it)
-            env.env.model.actuator_ctrlrange = np.array([[val, damages[0], damages[0]]])
+            env.env.model.actuator_ctrlrange = np.array([[damages[0], damages[0], val]])
 
             for i in range(args.num_rollouts):
                 returns = []
