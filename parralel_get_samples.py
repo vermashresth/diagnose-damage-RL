@@ -87,7 +87,9 @@ def sampling(arguments):
 
     with tf.Session():
         tf_util.initialize()
-        damages=[[-1,1], [-.7,.7], [-.5,.5]]
+        damages=[[-1,1]]
+        damagescheck=[[-1,1], [-.7,.7], [-.5,.5]]
+        itr = damagescheck.index(val)
 
         bigdata1 = np.empty([0, max_steps, 26])
         bigdata2 = np.empty([0, max_steps, 25])
@@ -162,8 +164,8 @@ def sampling(arguments):
                 bigdata2 = np.append(bigdata2, data2, axis=0)
                 bigdata3 = np.append(bigdata3, data3, axis=0)
 
-                it=np.reshape(np.array(it), (1,1))
-                clas = np.append(clas, it, axis=0)
+                itr=np.reshape(np.array(itr), (1,1))
+                clas = np.append(clas, itr, axis=0)
                 # print "bho"
                 return bigdata1, bigdata2, bigdata3, y_data, clas
 
