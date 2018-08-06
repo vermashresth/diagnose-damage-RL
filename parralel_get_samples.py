@@ -34,8 +34,7 @@ def main():
 
 
     a=range(args.num_rollouts)
-    damages=[[-1,1], [-.5,.5]]
-    dampairs = list(itertools.product(damages,damages,damages))
+    dampairs = list(itertools.product(damages,damages,damages,damages,damages,damages,damages,damages))
     ar = [args]
 
     paramlist = list(itertools.product(a,dampairs, ar))
@@ -48,10 +47,14 @@ def main():
     # print('hiiiiiii ')
     # print(len(out))
     # print(len(out[:][1]))
-    bigdata1=np.array([row[0] for row in out]).reshape((ntrials,args.max_timesteps,26))
-    bigdata2=np.array([row[1] for row in out]).reshape((ntrials,args.max_timesteps,25))
-    bigdata3=np.array([row[2] for row in out]).reshape((ntrials,args.max_timesteps,14))
-    y_data=np.array([row[3] for row in out]).reshape((ntrials, 3,2))
+
+
+
+    bigdata1=np.array([row[0] for row in out]).reshape((ntrials,args.max_timesteps,n_obs*2+n_act+1))
+    bigdata2=np.array([row[1] for row in out]).reshape((ntrials,args.max_timesteps,n_obs*2+n_act))
+    bigdata3=np.array([row[2] for row in out]).reshape((ntrials,args.max_timesteps,n_obs+n_act))
+
+    y_data=np.array([row[3] for row in out]).reshape((ntrials, n_act,2))
     clas=np.array([row[4] for row in out]).reshape((ntrials,1))
     print(bigdata1.shape)
     # print(bigdata.shape)
@@ -62,7 +65,7 @@ def main():
                     "class": clas,
                     'bigdata2': bigdata2,
                     'bigdata3': bigdata3}
-    pickle_out = open("data_pickles/" + args.envname + "_train3joints50timestenormaltest.dict", 'wb')
+    pickle_out = open("data_pickles/" + args.envname + "_3joints"+str(args.max_timesteps)+"normal"+str(args.num_rollouts)+".dict", 'wb')
     pickle.dump(train_data, pickle_out)
     pickle_out.close()
 
@@ -81,16 +84,17 @@ def sampling(arguments):
 
     with tf.Session():
         tf_util.initialize()
-        damages=[[-1,1], [-.5,.5]]
-    	dampairs = list(itertools.product(damages,damages,damages))
+
+
         itr = dampairs.index(dampair)
 
-        bigdata1 = np.empty([0, max_steps, 26])
-        bigdata2 = np.empty([0, max_steps, 25])
-        bigdata3 = np.empty([0, max_steps, 14])
+        bigdata1 = np.empty([0, max_steps, n_obs*2+n_act+1])
+        bigdata2 = np.empty([0, max_steps, n_obs*2+n_act])
+        bigdata3 = np.empty([0, max_steps, n_obs+n_act])
 
-        y_data = np.empty([0,3,2])
+        y_data = np.empty([0,n_act,2])
         clas = np.empty([0,1])
+
         for it, j in enumerate(damages):
             # print ('damage',it)
             #print(dampair)
@@ -145,14 +149,16 @@ def sampling(arguments):
                 # print(rewards.shape)
 
                 data1 = np.concatenate((observations, actions, newobs, rewards), axis=1)
-                data1 = data1.reshape(1,max_steps, 26)
+                #print data1.shape
+                data1 = data1.reshape(1,max_steps, n_obs*2+n_act+1)
                 #rint data1
                 data2 = np.concatenate((observations, actions, newobs), axis=1)
-                data2 = data2.reshape(1,max_steps, 25)
+                data2 = data2.reshape(1,max_steps, n_obs*2+n_act)
 
                 data3 = np.concatenate((observations - newobs, actions), axis=1)
-                data3 = data3.reshape(1,max_steps, 14)
+                data3 = data3.reshape(1,max_steps, n_obs+n_act)
                 #print(len(j))
+                print y_data.shape, np.array([dampair]).shape
                 y_data = np.append(y_data, [dampair], axis=0)
                 #print(y_data)
                 #print(bigdata.shape, data.shape)
@@ -176,6 +182,14 @@ parser.add_argument("--max_timesteps", type=int)
 parser.add_argument('--num_rollouts', type=int, default=50,
                     help='Number of expert roll outs')
 args = parser.parse_args()
+
+e = gym.make(args.envname)
+n_obs=e.observation_space.shape[0]
+n_act=e.action_space.shape[0]
+
+
+damages=[[-1,1], [-.5,.5]]	
+dampairs = list(itertools.product(damages,damages,damages,damages,damages,damages,damages,damages))
 
 print('loading and building expert policy')
 policy_fn = load_policy.load_policy(args.expert_policy_file)
