@@ -27,7 +27,7 @@ def lstm_model(input_shape):
    
 
    model.add(Dense(num_classes))
-   model.add(Activation('softmax'))
+   model.add(Activation('sigmoid'))
    adam = Adam(lr=0.001)
    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
    # model.compile(loss='mse', optimizer=adam, metrics=['accuracy'])
