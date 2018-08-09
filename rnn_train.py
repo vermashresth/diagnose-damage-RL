@@ -4,10 +4,10 @@ from keras.optimizers import Adam
 import numpy as np
 import pickle
 
-def lstm_model():
+def lstm_model(input_shape):
    hidden_units = 512  # may increase/decrease depending on capacity needed
    timesteps = 50
-   input_dim = 231
+   input_dim = input_shape
    num_classes = 4    # num of classes for ecg output
    model = Sequential()
    model.add(LSTM(hidden_units, input_shape=(timesteps, input_dim)))
@@ -39,9 +39,9 @@ def train():
    pickle_in = open("data_pickles/Ant-v1_2joints50normal2000.dict", "rb")
    data = pickle.load(pickle_in)
    print("samples loaded")
-   xt = data['bigdata1']  # input_data shape = (num_trials, timesteps, input_dim)
+   xt = data['bigdata3']  # input_data shape = (num_trials, timesteps, input_dim)
    # yt = data['y_data'].reshape(24000,6)  # out_data shape = (num_trials, num_classes)
-
+   print xt.shape[2]
    yt = data['class']
    from sklearn.preprocessing import OneHotEncoder, normalize
    #xt = normalize(xt)
@@ -50,8 +50,8 @@ def train():
    print(yt[:10])
    print(xt.shape, yt.shape)
    batch_size = 64
-   epochs = 30
-   model = lstm_model()
+   epochs = 300
+   model = lstm_model(xt.shape[2])
    model.fit(xt, yt, epochs=epochs, batch_size=batch_size, shuffle=True)
    model.save('saved_models/my_modelant2jointsday6_data3.h5')
 
