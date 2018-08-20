@@ -38,7 +38,8 @@ def main():
     dampairs = list(itertools.product(damages,damages,damages,damages))
     # print dampairs
     ar = [args]
-    pol=[.3,.5,1,1.5,1.8]
+
+    pol=[1]
     paramlist = list(itertools.product(a,dampairs, ar, pol))
     ntrials = args.num_rollouts * (len(dampairs))*len(pol)
 
@@ -65,6 +66,7 @@ def main():
     train_data = {'bigdata1': bigdata1,
                     'y_data': y_data,
                     "class": clas}
+
     pickle_out = open("data_pickles/" + args.envname + "_4joints"+str(args.max_timesteps)+"diff"+str(args.num_rollouts)+"randpol"+str(len(pol))+".dict", 'wb')
     pickle.dump(train_data, pickle_out)
     pickle_out.close()
@@ -114,7 +116,9 @@ def sampling(arguments):
                 observations_h = []
                 rewards = []
                 # print('iter', i)
+
                 ranseed = np.random.randint(100000)
+
 		s=env.seed(1234)
 		s=env_h.seed(1234)
                 obs = env.reset()

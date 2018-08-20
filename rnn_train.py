@@ -40,7 +40,9 @@ def lstm_model(input_shape):
 
 def train():
    print("loading samples")
+
    pickle_in = open("data_pickles/Ant-v1_4joints20diff200randpol5.dict", "rb")
+
    data = pickle.load(pickle_in)
    print("samples loaded")
    xt = data['bigdata1']  # input_data shape = (num_trials, timesteps, input_dim)
@@ -54,9 +56,11 @@ def train():
    print(yt[:10])
    print(xt.shape, yt.shape)
    batch_size = 64
+
    epochs = 30
    model = lstm_model(xt.shape[2])
    model.fit(xt, yt, epochs=epochs, batch_size=batch_size, shuffle=True)
    model.save('saved_models/my_modelant4jointsday10_datadiff20timerandpol200.h5')
+
 
 train()
