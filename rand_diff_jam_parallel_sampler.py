@@ -35,7 +35,8 @@ def main():
 
     a=range(args.num_rollouts)
     # dampairs = list(itertools.product(damages,damages,damages,damages,damages,damages,damages,damages))
-    dampairs = list(itertools.product(damages,damages,damages,damages))
+    #dampairs = list(itertools.product(damages,damages,damages,damages))
+    dampairs = [-2,-4,-6,-8]
     # print dampairs
     ar = [args]
 
@@ -57,7 +58,7 @@ def main():
     #bigdata2=np.array([row[1] for row in out]).reshape((ntrials,args.max_timesteps,n_obs*2+n_act))
     #bigdata3=np.array([row[2] for row in out]).reshape((ntrials,args.max_timesteps,n_obs+n_act))
 
-    y_data=np.array([row[1] for row in out]).reshape((ntrials, 4,2))
+    y_data=np.array([row[1] for row in out]).reshape((ntrials, 1))
     clas=np.array([row[2] for row in out]).reshape((ntrials,1))
     print(bigdata1.shape)
     # print(bigdata.shape)
@@ -67,7 +68,7 @@ def main():
                     'y_data': y_data,
                     "class": clas}
 
-    pickle_out = open("data_pickles/" + args.envname + "_4joints"+str(args.max_timesteps)+"diff"+str(args.num_rollouts)+"randpol"+str(len(pol))+".dict", 'wb')
+    pickle_out = open("data_pickles/" + args.envname + "_4joints"+str(args.max_timesteps)+"diff"+str(args.num_rollouts)+"randpoljamtest"+str(len(pol))+".dict", 'wb')
     pickle.dump(train_data, pickle_out)
     pickle_out.close()
 
@@ -95,19 +96,16 @@ def sampling(arguments):
         bigdata2 = np.empty([0, max_steps, n_obs*2+n_act])
         bigdata3 = np.empty([0, max_steps, n_obs+n_act])
 
-        y_data = np.empty([0,4,2])
+        y_data = np.empty([0,1])
         clas = np.empty([0,1])
 
         for it, j in enumerate(damages):
             # print ('damage',it)
             #print(dampair)
             # env.env.model.actuator_ctrlrange = np.array(dampair)
-            ori = np.array(env.env.model.actuator_ctrlrange)
-            ori[0]=dampair[0]
-            ori[1]=dampair[1]
-            ori[2]=dampair[2]
-            ori[3]=dampair[3]
-            env.env.model.actuator_ctrlrange = ori
+            ori = np.array(env.env.model.jnt_range)
+            ori[dampair] = [-0.1, .1]
+            env.env.model.jnt_range = ori
 
             for i in range(args.num_rollouts):
                 returns = []
@@ -178,8 +176,8 @@ def sampling(arguments):
                 #data3 = np.concatenate((observations - newobs, actions), axis=1)
                 #data3 = data3.reshape(1,max_steps, n_obs+n_act)
                 #print(len(j))
-                #print y_data.shape, np.array([dampair]).shape
-                y_data = np.append(y_data, [dampair], axis=0)
+                print y_data.shape, np.array([dampair]).shape
+                y_data = np.append(y_data, np.reshape([dampair],(1,1)), axis=0)
                 #print(y_data)
                 print(bigdata1.shape, data1.shape)
                 bigdata1 = np.append(bigdata1, data1, axis=0)
@@ -210,7 +208,7 @@ n_act=e.action_space.shape[0]
 
 damages=[[-1,1], [-.5,.5]]
 # dampairs = list(itertools.product(damages,damages,damages,damages,damages,damages,damages,damages))
-dampairs = list(itertools.product(damages,damages,damages,damages))
+dampairs = [-2,-4,-6,-8]
 print('loading and building expert policy')
 policy_fn = load_policy.load_policy(args.expert_policy_file)
 print('loaded and built')
