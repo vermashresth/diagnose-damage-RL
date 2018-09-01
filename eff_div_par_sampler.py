@@ -75,7 +75,7 @@ def main():
                     'y_data': y_data,
                     "class": clas}
 
-    pickle_out = open("data_pickles/" + args.envname + "_4joints"+str(args.max_timesteps)+"diff"+str(args.num_rollouts)+"doversetestshort"+str(len(pol))+".dict", 'wb')
+    pickle_out = open("data_pickles/" + args.envname + "_4joints"+str(args.max_timesteps)+"diff"+str(args.num_rollouts)+"2type"+str(len(pol))+".dict", 'wb')
     pickle.dump(train_data, pickle_out)
     pickle_out.close()
 
@@ -155,7 +155,7 @@ def sampling(arguments):
                     if steps >= max_steps:
                         break
                 returns.append(totalr)
-                print totalr, totalr_h
+                #print totalr, totalr_h
                 # print("hii")
 
                 # print('returns', returns)
@@ -186,7 +186,7 @@ def sampling(arguments):
                 #print(len(j))
                 itr = env.env.model.numeric_data[-1]
                 dampair = itr
-                print itr
+                #print itr
                 #print y_data.shape, np.array([dampair]).shape
                 y_data = np.append(y_data, np.reshape([dampair],(1,1)), axis=0)
                 #print(y_data)
