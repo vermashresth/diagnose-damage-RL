@@ -1,11 +1,11 @@
 from keras.models import load_model
 import pickle
 import numpy as np
-def create_model():
+def create_model(data_path, model_path):
 
-    model = load_model("saved_models/my_modelant4jointsday32_eff_div_2type.h5")
+    model = load_model(model_path)
     print("loading samples")
-    pickle_in = open("data_pickles/Ant-v1_4joints20diff1002type1.dict", "rb")
+    pickle_in = open(data_path, "rb")
     data = pickle.load(pickle_in)
     print("samples loaded")
     print(data['class'].shape)
@@ -23,4 +23,13 @@ def create_model():
     print np.sum(a==b), len(b)
     print (float(np.sum(a==b))/float(len(b)))
 
-create_model()
+if __name__ == '__main__':
+
+	import argparse
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-d', type=str)
+	parser.add_argument('-m', type=str)
+
+	args = parser.parse_args()
+
+	create_model(args.d, args.m)
