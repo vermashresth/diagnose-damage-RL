@@ -5,7 +5,7 @@ This is the code for a portion of my B.Tech Thesis Project `Deep Reinforcement L
 ### Requirements
 1. Keras
 2. Tensorflow
-3. OpenAI gym and Mujoco (See installation instructions (here)[https://github.com/openai/gym]
+3. OpenAI gym and Mujoco (See installation instructions [here](https://github.com/openai/gym]))
 4. Joblib
 
 
