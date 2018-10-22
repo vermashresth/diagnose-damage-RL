@@ -8,7 +8,7 @@ def lstm_model(input_shape):
    hidden_units = 512  # may increase/decrease depending on capacity needed
    timesteps = 20
    input_dim = input_shape
-   num_classes = 33    # num of classes for ecg output
+   num_classes = 22    # num of classes for output
    model = Sequential()
    model.add(LSTM(hidden_units, input_shape=(timesteps, input_dim)))
    model.add(Dense(256))
@@ -38,10 +38,10 @@ def lstm_model(input_shape):
    model.summary()
    return model
 
-def train():
+def train(load_path, save_path, epochs):
    print("loading samples")
 
-   pickle_in = open("data_pickles/Ant-v1_4joints20diff100002type1.dict", "rb")
+   pickle_in = open(load_path, "rb")
 
    data = pickle.load(pickle_in)
    print("samples loaded")
@@ -57,10 +57,19 @@ def train():
    print(xt.shape, yt.shape)
    batch_size = 64
 
-   epochs = 15
+   epochs = epochs
    model = lstm_model(xt.shape[2])
    model.fit(xt, yt, epochs=epochs, batch_size=batch_size, shuffle=True)
-   model.save('saved_models/my_modelant4jointsday32_eff_div_2type.h5')
+   model.save(save_path)
 
+if __name__ == '__main__':
 
-train()
+	import argparse
+	parser = argparse.ArgumentParser()
+	parser.add_argument('data_path', type=str)
+	parser.add_argument('-e', type=int, default=50)
+	parser.add_argument('-s', type=str)
+
+	args = parser.parse_args()
+
+	train(args.data_path, args.s, args.e)

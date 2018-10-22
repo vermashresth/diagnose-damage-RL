@@ -3,7 +3,7 @@
 """
 Code to load an expert policy and generate roll-out data for collecting samples.
 Example usage:
-    python get_samples.py experts/Humanoid-v1.pkl Humanoid-v1 --render \
+    python eff_div_par_sampler experts/Ant-v1.pkl Ant-v1 --render \
             --num_rollouts 20
 """
 
@@ -18,25 +18,21 @@ from joblib import Parallel, delayed
 import itertools
 import gym, itertools
 from sklearn.preprocessing import normalize
+def batch_env(workers, args):
+    envs=[]
+    for i in range(workers):
+            env = gym.make('MyAnt-v1')
+            env_h = gym.make('Ant-v1')
+            envs.append([env,env_h])
+    return envs
 def main():
 
-
-
-
-
-
-
-
-    #print (data[100])
-
-    #
-    #
 
 
     a=range(args.num_rollouts)
     # dampairs = list(itertools.product(damages,damages,damages,damages,damages,damages,damages,damages))
     #dampairs = list(itertools.product(damages,damages,damages,damages))
-    dampairs = [-2,-4,-6,-8, 0, 2, 4, 6]
+    dampairs = batch_env(4, args)
     # print dampairs
     ar = [args]
 
@@ -44,7 +40,7 @@ def main():
     paramlist = list(itertools.product(a,dampairs, ar, pol))
     ntrials = args.num_rollouts * (len(dampairs))*len(pol)
 
-    out = Parallel(n_jobs=15, verbose=1, backend="multiprocessing")(
+    out = Parallel(n_jobs=12, verbose=1, backend="multiprocessing")(
                  map(delayed(sampling),paramlist))
 
     #bigdata1, bigdata2, bigdata3, y_data, clas = sampling(args)
@@ -68,21 +64,18 @@ def main():
                     'y_data': y_data,
                     "class": clas}
 
-    pickle_out = open("data_pickles/" + args.envname + "_4joints"+str(args.max_timesteps)+"diff"+str(args.num_rollouts)+"doverse"+str(len(pol))+".dict", 'wb')
+    pickle_out = open("data_pickles/" + args.envname + "_4joints"+str(args.max_timesteps)+"diff"+str(args.num_rollouts)+"2type"+str(len(pol))+".dict", 'wb')
     pickle.dump(train_data, pickle_out)
     pickle_out.close()
 
 
 def sampling(arguments):
 
-    it, dampair, args, pol = arguments
+    it, e, args, pol = arguments
     print it
+    env, env_h = e
 
 
-
-
-    env = gym.make(args.envname)
-    env_h = gym.make(args.envname)
     max_steps = args.max_timesteps or env.spec.timestep_limit
 
 
@@ -90,7 +83,7 @@ def sampling(arguments):
         tf_util.initialize()
 
 
-        itr = dampairs.index(dampair)
+        #itr = dampairs.index(dampair)
 
         bigdata1 = np.empty([0, max_steps, n_obs])
         bigdata2 = np.empty([0, max_steps, n_obs*2+n_act])
@@ -103,14 +96,14 @@ def sampling(arguments):
             # print ('damage',it)
             #print(dampair)
             # env.env.model.actuator_ctrlrange = np.array(dampair)
-            if dampair<0:
-                ori = np.array(env.env.model.jnt_range)
-                ori[dampair] = [-0.1, .1]
-                env.env.model.jnt_range = ori
-            else:
-                ori = np.array(env.env.model.actuator_ctrlrange)
-                ori[dampair] = [-0.01, 0.01]
-                env.env.model.actuator_ctrlrange = ori
+            # if dampair<0:
+            #     ori = np.array(env.env.model.jnt_range)
+            #     ori[dampair] = [-0.1, .1]
+            #     env.env.model.jnt_range = ori
+            # else:
+            #     ori = np.array(env.env.model.actuator_ctrlrange)
+            #     ori[dampair] = [-0.01, 0.01]
+            #     env.env.model.actuator_ctrlrange = ori
 
             for i in range(args.num_rollouts):
                 returns = []
@@ -128,6 +121,7 @@ def sampling(arguments):
                 obs_h = env_h.reset()
                 done = False
                 totalr = 0.
+                totalr_h = 0.
                 steps = 0
                 while not False:
                     action = policy_fn(obs[None,:])*pol
@@ -142,6 +136,7 @@ def sampling(arguments):
                     rewards.append(r)
                     #print(rewards)
                     totalr += r
+                    totalr_h += r_h
                     steps += 1
                     if args.render:
                         env.render()
@@ -149,6 +144,7 @@ def sampling(arguments):
                     if steps >= max_steps:
                         break
                 returns.append(totalr)
+                #print totalr, totalr_h
                 # print("hii")
 
                 # print('returns', returns)
@@ -177,10 +173,13 @@ def sampling(arguments):
                 #data3 = np.concatenate((observations - newobs, actions), axis=1)
                 #data3 = data3.reshape(1,max_steps, n_obs+n_act)
                 #print(len(j))
-                print y_data.shape, np.array([dampair]).shape
+                itr = env.env.model.numeric_data[-1]
+                dampair = itr
+                #print itr
+                #print y_data.shape, np.array([dampair]).shape
                 y_data = np.append(y_data, np.reshape([dampair],(1,1)), axis=0)
                 #print(y_data)
-                print(bigdata1.shape, data1.shape)
+                #print(bigdata1.shape, data1.shape)
                 bigdata1 = np.append(bigdata1, data1, axis=0)
                 #bigdata2 = np.append(bigdata2, data2, axis=0)
                 #bigdata3 = np.append(bigdata3, data3, axis=0)
