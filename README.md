@@ -1,6 +1,6 @@
 ## One Shot Damage Diagnosis
 
-This is the code for a portion of my B.Tech Thesis Project `Deep Reinforcement Learning for Stability and Safe Adaptation in Damaged Robots`. It can diagnoze damage in any locomatory OpenAI gym agent using only only rollout of motion.
+This is the code for a portion of my B.Tech Thesis Project `Deep Reinforcement Learning for Stability and Safe Adaptation in Damaged Robots`. It can diagnoze damage in any locomatory OpenAI gym agent using only one rollout of 20 timesteps.
 
 ### Requirements
 1. Keras
