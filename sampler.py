@@ -44,7 +44,6 @@ def main():
                  map(delayed(sampling),paramlist))
 
     #bigdata1, bigdata2, bigdata3, y_data, clas = sampling(args)
-    # print('hiiiiiii ')
     # print(len(out))
     # print(len(out[:][1]))
 
@@ -94,7 +93,7 @@ def sampling(arguments):
 
         for it, j in enumerate(damages):
             # print ('damage',it)
-            #print(dampair)
+            # print(dampair)
             # env.env.model.actuator_ctrlrange = np.array(dampair)
             # if dampair<0:
             #     ori = np.array(env.env.model.jnt_range)
@@ -145,8 +144,6 @@ def sampling(arguments):
                         break
                 returns.append(totalr)
                 #print totalr, totalr_h
-                # print("hii")
-
                 # print('returns', returns)
                 # print('mean return', np.mean(returns))
                 # print('std of return', np.std(returns))
@@ -186,7 +183,6 @@ def sampling(arguments):
 
                 itr=np.reshape(np.array(itr), (1,1))
                 clas = np.append(clas, itr, axis=0)
-                # print "bho"
                 return bigdata1, y_data, clas
 
 #if __name__ == '__main__':
